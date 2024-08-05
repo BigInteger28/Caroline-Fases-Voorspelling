@@ -79,6 +79,7 @@ func main() {
 			fmt.Println("Invalid date format. Please use MM YYYY.")
 			return
 		}
+		endMonthYear = endMonthYear.AddDate(0, 1, 0)
 	
 		// Calculate the number of days between the fixed start date and the user-specified end date
 		numDaysFromFixedStart := int(endMonthYear.Sub(fixedStartDate).Hours() / 24)
