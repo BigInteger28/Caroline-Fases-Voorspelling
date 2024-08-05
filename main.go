@@ -10,7 +10,7 @@ import (
 
 // Phase struct to hold the phase name and duration
 type Phase struct {
-	Name     string
+	Name      string
 	Durations []int
 }
 
@@ -35,25 +35,22 @@ var (
 func generateCycles(startDate time.Time, phases []Phase, numDays int) []Cycle {
 	var cycles []Cycle
 	currentDate := startDate
-	for currentDate.Before(startDate.AddDate(0, 0, numDays)) {
-		for _, phase := range phases {
-			duration := phase.Durations[len(cycles)%len(phase.Durations)]
-			endDate := currentDate.AddDate(0, 0, duration-1)
-			cycles = append(cycles, Cycle{Phase: phase.Name, Start: currentDate, End: endDate})
-			currentDate = endDate.AddDate(0, 0, 1)
+	phaseIndex := 0
+	durationIndex := 0
+
+	for dayCount := 0; dayCount < numDays; {
+		phase := phases[phaseIndex%len(phases)]
+		duration := phase.Durations[durationIndex%len(phase.Durations)]
+		endDate := currentDate.AddDate(0, 0, duration-1)
+		cycles = append(cycles, Cycle{Phase: phase.Name, Start: currentDate, End: endDate})
+		currentDate = endDate.AddDate(0, 0, 1)
+		dayCount += duration
+		phaseIndex++
+		if phaseIndex%len(phases) == 0 {
+			durationIndex++
 		}
 	}
 	return cycles
-}
-
-// Function to find the phase for a specific date
-func findPhaseForDate(date time.Time, cycles []Cycle) string {
-	for _, cycle := range cycles {
-		if (date.After(cycle.Start) && date.Before(cycle.End)) || date.Equal(cycle.Start) || date.Equal(cycle.End) {
-			return cycle.Phase
-		}
-	}
-	return "Unknown"
 }
 
 // Function to read month and year input from user
@@ -67,40 +64,37 @@ func readMonthYearInput(prompt string) (time.Time, error) {
 }
 
 func main() {
-	// Startdatum is vastgesteld op 22 maart 2024
-	startDate := time.Date(2024, 3, 22, 0, 0, 0, 0, time.UTC)
-
-	// Read start and end month/year from user
-	startMonthYear, err := readMonthYearInput("Enter start month and year (MM YYYY): ")
-	if err != nil {
-		fmt.Println("Invalid date format. Please use MM YYYY.")
-		return
-	}
-	endMonthYear, err := readMonthYearInput("Enter end month and year (MM YYYY): ")
-	if err != nil {
-		fmt.Println("Invalid date format. Please use MM YYYY.")
-		return
-	}
-
-	// Ensure that the start date is not before the fixed start date
-	if startMonthYear.Before(startDate) {
-		startMonthYear = startDate
-	}
-
-	// Calculate the number of days between start and end date
-	numDays := int(endMonthYear.Sub(startMonthYear).Hours() / 24)
-
-	// Generate cycles
-	cycles = generateCycles(startDate, phases, numDays)
-
-	// Print all cycles for the specified period
-	fmt.Println("Calculated cycles:")
-	for _, cycle := range cycles {
-		if cycle.Start.After(endMonthYear) {
-			break
+	for {
+		// Startdatum is vastgesteld op 22 maart 2024
+		fixedStartDate := time.Date(2024, 3, 22, 0, 0, 0, 0, time.UTC)
+	
+		// Read start and end month/year from user
+		startMonthYear, err := readMonthYearInput("Enter start month and year (MM YYYY): ")
+		if err != nil {
+			fmt.Println("Invalid date format. Please use MM YYYY.")
+			return
 		}
-		if cycle.End.After(startMonthYear) && cycle.Start.Before(endMonthYear) {
-			fmt.Printf("Phase: %s, Start: %s, End: %s\n", cycle.Phase, cycle.Start.Format("02-01-2006"), cycle.End.Format("02-01-2006"))
+		endMonthYear, err := readMonthYearInput("Enter end month and year (MM YYYY): ")
+		if err != nil {
+			fmt.Println("Invalid date format. Please use MM YYYY.")
+			return
+		}
+	
+		// Calculate the number of days between the fixed start date and the user-specified end date
+		numDaysFromFixedStart := int(endMonthYear.Sub(fixedStartDate).Hours() / 24)
+	
+		// Generate all cycles from the fixed start date
+		allCycles := generateCycles(fixedStartDate, phases, numDaysFromFixedStart)
+	
+		// Filter cycles within the user-specified range
+		fmt.Println("Calculated cycles:")
+		for _, cycle := range allCycles {
+			if cycle.Start.After(endMonthYear) {
+				break
+			}
+			if cycle.End.After(startMonthYear) && cycle.Start.Before(endMonthYear) {
+				fmt.Printf("Phase: %s, Start: %s, End: %s\n", cycle.Phase, cycle.Start.Format("02-01-2006"), cycle.End.Format("02-01-2006"))
+			}
 		}
 	}
 }
