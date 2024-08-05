@@ -87,6 +87,10 @@ func main() {
 	// Startdatum is vastgesteld op 22 maart 2024
 	fixedStartDate := time.Date(2024, 3, 22, 0, 0, 0, 0, time.UTC)
 
+	// Genereer een lange periode van cycli
+	totalDays := 100 * 365 // 100 jaar vooruit
+	allCycles := generateCycles(fixedStartDate, phases, totalDays)
+
 	// Lees de start- en eindmaand/jaar van de gebruiker
 	for {
 		fmt.Println("Kies een optie:")
@@ -112,12 +116,6 @@ func main() {
 			}
 			endMonthYear = endMonthYear.AddDate(0, 1, 0)
 
-			// Bereken het aantal dagen tussen de vaste startdatum en de door de gebruiker opgegeven einddatum
-			numDaysFromFixedStart := int(endMonthYear.Sub(fixedStartDate).Hours() / 24)
-
-			// Genereer alle cycli vanaf de vaste startdatum
-			allCycles := generateCycles(fixedStartDate, phases, numDaysFromFixedStart)
-
 			// Filter cycli binnen het door de gebruiker opgegeven bereik
 			fmt.Println("Calculated cycles:")
 			for _, cycle := range allCycles {
@@ -134,12 +132,6 @@ func main() {
 				fmt.Println("Invalid date format. Please use DD MM YYYY.")
 				continue
 			}
-
-			// Bereken het aantal dagen tussen de vaste startdatum en de door de gebruiker opgegeven datum
-			numDaysFromFixedStart := int(targetDate.Sub(fixedStartDate).Hours() / 24)
-
-			// Genereer alle cycli vanaf de vaste startdatum
-			allCycles := generateCycles(fixedStartDate, phases, numDaysFromFixedStart)
 
 			// Zoek de fase voor de opgegeven datum
 			phase, start, end := findPhaseForDate(targetDate, allCycles)
